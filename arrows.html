@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Арифметический тренажер</title>
+    <style>
+        * {
+            outline: none;
+        }    
+
+        body {
+            font-size: 20px;
+        }    
+
+        input[type='number'] {
+            -moz-appearance:textfield;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }    
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #arks {
+            position: absolute;
+            top: 70px;
+        }
+
+        .container {
+            position: relative;
+            width: 1000px;
+            margin: 0 auto;
+        }
+
+        .container_for_equation {
+            text-align: center;
+        }   
+
+        .input_container {
+            display: block;
+            position: absolute;
+            z-index: 1;
+            height: 32px;
+            width: 20px;
+            padding: 0.2rem;
+            text-align: center;
+            transition: 0.6s;
+        }
+
+        .input_container.hidden {
+            display: none;
+        }
+
+        .input_container input[type=number]{
+            font-size: 20px;
+            width: 100%;
+            height: 100%;
+            border: 1px solid #aeb1b6;
+            border-radius: 4px;
+            box-sizing: border-box;
+            padding: 0.2rem;  
+        }
+
+        .input_container input.error, .container_for_equation__result.error input {
+            color: #f21846;
+        }
+
+        .container_for_equation {
+            padding: 10px;
+            height: 32px;
+            width: 850px;
+        }
+
+        .container_for_equation span {
+            padding: 0.2rem;
+            transition: 0.6s;
+        } 
+
+        .container_for_equation span.warning {
+            background: #fba655;
+        } 
+
+        .container_for_equation__result_input {
+            font-size: 20px;
+            display: inline-block;
+            max-width: 38px;
+            border-radius: 4px;
+            border: 1px solid #aeb1b6;
+            text-align: center;
+
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="container_for_equation">
+        <span class="container_for_equation__first_number" data-option="for_first_number">7</span>
+        <span class="container_for_equation__sign" data-option="for_second_number">+</span>
+        <span class="container_for_equation__second_number" data-option="for_second_number">4</span>
+        <span class="container_for_equation__sign" data-option="for_second_number">=</span>
+        <span class="container_for_equation__result" data-option="for_result">?</span>      
+    </div>
+    <div class="input_container container_for_first_number hidden">
+        <input type="number" data-option="for_first_number">     
+    </div>
+    <div class="input_container container_for_second_number hidden">
+        <input type="number" data-option="for_second_number">     
+    </div>
+    <canvas id="arks" width="1000" height="500"></canvas>
+    <canvas id="for_image" width="1000" height="500"></canvas>
+</div>
+<script>
+
+let 
+    arg1 = 7,
+    arg2 = 4,
+    sum = arg1 + arg2,
+    container_for_equation__first_number  = document.querySelector('.container_for_equation__first_number'),
+    container_for_equation__second_number = document.querySelector('.container_for_equation__second_number'),
+    container_for_equation__result        = document.querySelector('.container_for_equation__result'),
+    first_input                           = document.querySelector('input[data-option="for_first_number"]'),
+    second_input                          = document.querySelector('input[data-option="for_second_number"]');  
+   
+    
+    let inputs = document.querySelectorAll('input[type=number]');
+    for(let i of inputs){
+        i.onfocus = function(){
+            this.value = '';
+        }
+    }
+
+window.onload = function (){
+    firstArk();
+    setInterval(intro, 500);
+    function intro(){
+        
+        document.querySelector('.input_container').classList.remove('hidden');     
+    }
+    drawImg();
+}
+
+function firstArk(){
+    let canvas = document.querySelector("#arks");
+    let context = canvas.getContext("2d");
+    let startX = 37;
+    let finishX = arg1 * startX + 50;
+    let yAxis = 200;
+    let yOffset = 100;
+  
+    context.moveTo(startX, yAxis);
+    context.bezierCurveTo(startX+50, yAxis - yOffset, finishX - 50, yAxis - yOffset, finishX, yAxis);
+    
+    context.strokeStyle = "#d94899"; 
+    context.moveTo(finishX,yAxis-14);
+    context.lineTo(finishX,yAxis);
+    context.lineTo(finishX-12,yAxis-8);
+    context.lineWidth = 2;
+    context.stroke();
+    
+    function secondArk(){
+        context.moveTo(finishX+1,yAxis);
+        context.bezierCurveTo(finishX+10, 140, finishX+arg2*startX-10, 140, finishX+arg2*startX+8, yAxis);
+        context.moveTo(finishX+arg2*startX+8,yAxis-10);
+        context.lineTo(finishX+arg2*startX+8,yAxis);
+        context.lineTo(finishX+arg2*startX,yAxis-6);
+        context.lineWidth = 2;
+        context.stroke();    
+    }
+    
+    //куда постаить инпут над кривыми
+    let where = ((finishX + startX)/2)-15;
+    let where2 = ((finishX + 10 + finishX+arg2*startX+8)/2)-15;
+    
+    document.querySelector('.container_for_first_number').style.left  = where;
+    document.querySelector('.container_for_first_number').style.top  = yOffset+50;
+
+    document.querySelector('.container_for_second_number').style.left  = where2;
+    document.querySelector('.container_for_second_number').style.top  = yOffset+80;
+    
+    first_input.oninput = function (){
+        container_for_equation__first_number.classList.remove('warning');
+            if(this.value == arg1){
+            this.parentNode.innerHTML = `${arg1}`; 
+            secondArk();
+            document.querySelector('.container_for_second_number').classList.remove('hidden');
+        }        
+        else {
+            this.classList.add('error');
+            container_for_equation__first_number.classList.add('warning');
+        }
+        this.blur();    
+    }
+    
+    second_input.oninput = function(){
+        container_for_equation__second_number.classList.remove('warning');
+        if(this.value == arg2){
+            this.parentNode.innerHTML = `${arg2}`; 
+            container_for_equation__result.innerHTML = '<input class="container_for_equation__result_input" type="number">';
+            validate_sum();
+        }
+        
+        else {
+            this.classList.add('error');
+            container_for_equation__second_number.classList.add('warning');
+        }
+        this.blur();
+    }
+};
+
+function validate_sum(){
+    document.querySelector('.container_for_equation__result_input').oninput = function(){
+        if(this.value == sum){
+            this.parentNode.innerHTML = `${sum}`;     
+        }
+        else {
+            document.querySelector('.container_for_equation__result').classList.add('error');    
+        }
+    };
+}
+    
+function drawImg() {
+    let canvas = document.querySelector("#for_image");
+    let context = canvas.getContext("2d");
+    
+    let img = new Image();
+    context.moveTo(0, 0);
+    
+    img.onload = function() {
+        context.drawImage(img, 0, 200);
+    };
+    
+    img.src = "sprite.png";
+}
+</script>    
+</body>
+</html>
